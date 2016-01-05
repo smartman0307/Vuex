@@ -8,8 +8,7 @@
 
 ## NOTE: Vuex is still in development - API may change anytime.
 
-- [Documentation](http://vuex.vuejs.org/)
-- [Great introduction and explanation by @skyronic](http://skyronic.com/2016/01/03/vuex-basics-tutorial/)
+[Documentation](http://vuex.vuejs.org/)
 
 ## Examples
 
