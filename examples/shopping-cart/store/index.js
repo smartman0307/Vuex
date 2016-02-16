@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Vuex from '../../../src'
 import * as actions from './actions'
-import * as getters from './getters'
 import { cartInitialState, cartMutations } from './modules/cart'
 import { productsInitialState, productsMutations } from './modules/products'
 
@@ -16,7 +15,6 @@ export default new Vuex.Store({
     products: productsInitialState
   },
   actions,
-  getters,
   mutations: [cartMutations, productsMutations],
   strict: debug,
   middlewares: debug ? [Vuex.createLogger()] : []

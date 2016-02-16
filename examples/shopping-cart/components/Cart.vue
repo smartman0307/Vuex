@@ -19,7 +19,16 @@ const { checkout } = store.actions
 
 export default {
   computed: {
-    products: store.getters.cartProducts,
+    products () {
+      return store.state.cart.added.map(({ id, quantity }) => {
+        const product = store.state.products.find(p => p.id === id)
+        return {
+          title: product.title,
+          price: product.price,
+          quantity
+        }
+      })
+    },
     checkoutStatus () {
       return store.state.cart.lastCheckout
     },

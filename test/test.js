@@ -31,11 +31,6 @@ describe('Vuex', () => {
       actions: {
         test: TEST
       },
-      getters: {
-        getA (state) {
-          return state.a
-        }
-      },
       mutations: {
         [TEST] (state, n) {
           state.a += n
@@ -44,7 +39,6 @@ describe('Vuex', () => {
     })
     store.actions.test(2)
     expect(store.state.a).to.equal(3)
-    expect(store.getters.getA()).to.equal(3)
   })
 
   it('async action', function (done) {
@@ -98,31 +92,12 @@ describe('Vuex', () => {
             state.c += n
           }
         }
-      ],
-      getters: [
-        {
-          getA (state) {
-            return state.a
-          }
-        },
-        {
-          getB (state) {
-            return state.b
-          },
-
-          getC (state) {
-            return state.c
-          }
-        }
       ]
     })
     store.actions.test(2)
     expect(store.state.a).to.equal(3)
     expect(store.state.b).to.equal(3)
     expect(store.state.c).to.equal(1)
-    expect(store.getters.getA()).to.equal(3)
-    expect(store.getters.getB()).to.equal(3)
-    expect(store.getters.getC()).to.equal(1)
     store.actions.test2(2)
     expect(store.state.c).to.equal(3)
   })
@@ -130,8 +105,7 @@ describe('Vuex', () => {
   it('hot reload', function () {
     const store = new Vuex.Store({
       state: {
-        a: 1,
-        b: 2
+        a: 1
       },
       actions: {
         test: TEST
@@ -140,17 +114,11 @@ describe('Vuex', () => {
         [TEST] (state, n) {
           state.a += n
         }
-      },
-      getters: {
-        getA (state) {
-          return state.b
-        }
       }
     })
     const test = store.actions.test
     test(2)
     expect(store.state.a).to.equal(3)
-    expect(store.getters.getA()).to.equal(2)
     store.hotUpdate({
       actions: {
         test: ({ dispatch }, n) => dispatch(TEST, n + 1)
@@ -159,16 +127,10 @@ describe('Vuex', () => {
         [TEST] (state, n) {
           state.a = n
         }
-      },
-      getters: {
-        getA (state) {
-          return state.a
-        }
       }
     })
     test(999)
     expect(store.state.a).to.equal(1000)
-    expect(store.getters.getA()).to.equal(1000)
   })
 
   it('middleware', function () {
