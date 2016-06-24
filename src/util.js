@@ -56,8 +56,7 @@ export function deepClone (obj) {
 let Watcher
 export function getWatcher (vm) {
   if (!Watcher) {
-    const noop = function () {}
-    const unwatch = vm.$watch(noop, noop)
+    const unwatch = vm.$watch('__vuex__', a => a)
     Watcher = vm._watchers[0].constructor
     unwatch()
   }

@@ -11,9 +11,9 @@ Vue.filter('time', timestamp => {
 })
 
 new Vue({
-  el: '#app',
+  el: 'body',
   store,
-  render: h => h(App)
+  components: { App }
 })
 
 getAllMessages(store)

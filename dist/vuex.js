@@ -1,5 +1,5 @@
 /*!
- * Vuex v0.8.0
+ * Vuex v0.6.3
  * (c) 2016 Evan You
  * Released under the MIT License.
  */
@@ -9,19 +9,20 @@
   (global.Vuex = factory());
 }(this, function () { 'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+  var babelHelpers = {};
+  babelHelpers.typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
     return typeof obj;
   } : function (obj) {
     return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
   };
 
-  var classCallCheck = function (instance, Constructor) {
+  babelHelpers.classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   };
 
-  var createClass = function () {
+  babelHelpers.createClass = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];
@@ -39,7 +40,7 @@
     };
   }();
 
-  var toConsumableArray = function (arr) {
+  babelHelpers.toConsumableArray = function (arr) {
     if (Array.isArray(arr)) {
       for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
 
@@ -48,6 +49,8 @@
       return Array.from(arr);
     }
   };
+
+  babelHelpers;
 
   /**
    * Merge an array of objects into one.
@@ -86,7 +89,7 @@
   function deepClone(obj) {
     if (Array.isArray(obj)) {
       return obj.map(deepClone);
-    } else if (obj && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
+    } else if (obj && (typeof obj === 'undefined' ? 'undefined' : babelHelpers.typeof(obj)) === 'object') {
       var cloned = {};
       var keys = Object.keys(obj);
       for (var i = 0, l = keys.length; i < l; i++) {
@@ -107,8 +110,9 @@
   var Watcher = void 0;
   function getWatcher(vm) {
     if (!Watcher) {
-      var noop = function noop() {};
-      var unwatch = vm.$watch(noop, noop);
+      var unwatch = vm.$watch('__vuex__', function (a) {
+        return a;
+      });
       Watcher = vm._watchers[0].constructor;
       unwatch();
     }
@@ -130,8 +134,11 @@
       if (!hook) return;
       hook.emit('vuex:init', store);
       hook.on('vuex:travel-to-state', function (targetState) {
+        var currentState = store._vm._data;
         store._dispatching = true;
-        store._vm.state = targetState;
+        Object.keys(targetState).forEach(function (key) {
+          currentState[key] = targetState[key];
+        });
         store._dispatching = false;
       });
     },
@@ -142,25 +149,14 @@
   };
 
   function override (Vue) {
-    var version = Number(Vue.version.split('.')[0]);
+    // override init and inject vuex init procedure
+    var _init = Vue.prototype._init;
+    Vue.prototype._init = function () {
+      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-    if (version >= 2) {
-      Vue.mixin({
-        init: vuexInit
-      });
-    } else {
-      (function () {
-        // override init and inject vuex init procedure
-        // for 1.x backwards compatibility.
-        var _init = Vue.prototype._init;
-        Vue.prototype._init = function () {
-          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-          options.init = options.init ? [vuexInit].concat(options.init) : vuexInit;
-          _init.call(this, options);
-        };
-      })();
-    }
+      options.init = options.init ? [vuexInit].concat(options.init) : vuexInit;
+      _init.call(this, options);
+    };
 
     /**
      * Vuex init hook, injected into each instances init hooks list.
@@ -183,8 +179,8 @@
           console.warn('[vuex] store not injected. make sure to ' + 'provide the store option in your root component.');
         }
         var state = vuex.state;
-        var actions = vuex.actions;
         var getters = vuex.getters;
+        var actions = vuex.actions;
         // handle deprecated state option
 
         if (state && !getters) {
@@ -258,8 +254,8 @@
       var vm = store._vm;
       var Watcher = getWatcher(vm);
       var Dep = getDep(vm);
-      var watcher = new Watcher(vm, function (vm) {
-        return getter(vm.state);
+      var watcher = new Watcher(vm, function (state) {
+        return getter(state);
       }, null, { lazy: true });
       var computedGetter = function computedGetter() {
         if (watcher.dirty) {
@@ -337,7 +333,7 @@
       var middlewares = _ref$middlewares === undefined ? [] : _ref$middlewares;
       var _ref$strict = _ref.strict;
       var strict = _ref$strict === undefined ? false : _ref$strict;
-      classCallCheck(this, Store);
+      babelHelpers.classCallCheck(this, Store);
 
       this._getterCacheId = 'vuex_store_' + uid++;
       this._dispatching = false;
@@ -361,9 +357,7 @@
       var silent = Vue.config.silent;
       Vue.config.silent = true;
       this._vm = new Vue({
-        data: {
-          state: state
-        }
+        data: state
       });
       Vue.config.silent = silent;
       this._setupModuleState(state, modules);
@@ -382,7 +376,7 @@
      * @return {Object}
      */
 
-    createClass(Store, [{
+    babelHelpers.createClass(Store, [{
       key: 'dispatch',
 
 
@@ -399,7 +393,7 @@
 
         var silent = false;
         // compatibility for object actions, e.g. FSA
-        if ((typeof type === 'undefined' ? 'undefined' : _typeof(type)) === 'object' && type.type && arguments.length === 1) {
+        if ((typeof type === 'undefined' ? 'undefined' : babelHelpers.typeof(type)) === 'object' && type.type && arguments.length === 1) {
           payload = [type.payload];
           if (type.silent) silent = true;
           type = type.type;
@@ -411,10 +405,10 @@
           // apply the mutation
           if (Array.isArray(mutation)) {
             mutation.forEach(function (m) {
-              return m.apply(undefined, [state].concat(toConsumableArray(payload)));
+              return m.apply(undefined, [state].concat(babelHelpers.toConsumableArray(payload)));
             });
           } else {
-            mutation.apply(undefined, [state].concat(toConsumableArray(payload)));
+            mutation.apply(undefined, [state].concat(babelHelpers.toConsumableArray(payload)));
           }
           this._dispatching = false;
           if (!silent) this._applyMiddlewares(type, payload);
@@ -428,22 +422,18 @@
        * Same API as Vue's $watch, except when watching a function,
        * the function gets the state as the first argument.
        *
-       * @param {Function} fn
+       * @param {String|Function} expOrFn
        * @param {Function} cb
        * @param {Object} [options]
        */
 
     }, {
       key: 'watch',
-      value: function watch(fn, cb, options) {
+      value: function watch(expOrFn, cb, options) {
         var _this2 = this;
 
-        if (typeof fn !== 'function') {
-          console.error('Vuex store.watch only accepts function.');
-          return;
-        }
         return this._vm.$watch(function () {
-          return fn(_this2.state);
+          return typeof expOrFn === 'function' ? expOrFn(_this2.state) : _this2._vm.$get(expOrFn);
         }, cb, options);
       }
 
@@ -533,7 +523,7 @@
 
         var Watcher = getWatcher(this._vm);
         /* eslint-disable no-new */
-        new Watcher(this._vm, 'state', function () {
+        new Watcher(this._vm, '$data', function () {
           if (!_this3._dispatching) {
             throw new Error('[vuex] Do not mutate vuex store state outside mutation handlers.');
           }
@@ -606,7 +596,7 @@
     }, {
       key: 'state',
       get: function get() {
-        return this._vm.state;
+        return this._vm._data;
       },
       set: function set(v) {
         throw new Error('[vuex] Vuex root state is read only.');
@@ -629,9 +619,14 @@
     install(window.Vue);
   }
 
+  function createLogger() {
+    console.warn('[vuex] Vuex.createLogger has been deprecated.' + 'Use `import createLogger from \'vuex/logger\' instead.');
+  }
+
   var index = {
     Store: Store,
-    install: install
+    install: install,
+    createLogger: createLogger
   };
 
   return index;

@@ -43,9 +43,7 @@ class Store {
     const silent = Vue.config.silent
     Vue.config.silent = true
     this._vm = new Vue({
-      data: {
-        state
-      }
+      data: state
     })
     Vue.config.silent = silent
     this._setupModuleState(state, modules)
@@ -65,7 +63,7 @@ class Store {
    */
 
   get state () {
-    return this._vm.state
+    return this._vm._data
   }
 
   set state (v) {
@@ -108,17 +106,17 @@ class Store {
    * Same API as Vue's $watch, except when watching a function,
    * the function gets the state as the first argument.
    *
-   * @param {Function} fn
+   * @param {String|Function} expOrFn
    * @param {Function} cb
    * @param {Object} [options]
    */
 
-  watch (fn, cb, options) {
-    if (typeof fn !== 'function') {
-      console.error('Vuex store.watch only accepts function.')
-      return
-    }
-    return this._vm.$watch(() => fn(this.state), cb, options)
+  watch (expOrFn, cb, options) {
+    return this._vm.$watch(() => {
+      return typeof expOrFn === 'function'
+        ? expOrFn(this.state)
+        : this._vm.$get(expOrFn)
+    }, cb, options)
   }
 
   /**
@@ -188,7 +186,7 @@ class Store {
   _setupMutationCheck () {
     const Watcher = getWatcher(this._vm)
     /* eslint-disable no-new */
-    new Watcher(this._vm, 'state', () => {
+    new Watcher(this._vm, '$data', () => {
       if (!this._dispatching) {
         throw new Error(
           '[vuex] Do not mutate vuex store state outside mutation handlers.'
@@ -272,7 +270,15 @@ if (typeof window !== 'undefined' && window.Vue) {
   install(window.Vue)
 }
 
+function createLogger () {
+  console.warn(
+    '[vuex] Vuex.createLogger has been deprecated.' +
+    'Use `import createLogger from \'vuex/logger\' instead.'
+  )
+}
+
 export default {
   Store,
-  install
+  install,
+  createLogger
 }

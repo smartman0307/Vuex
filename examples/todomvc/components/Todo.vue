@@ -40,10 +40,10 @@ export default {
     }
   },
   directives: {
-    focus (el, { value }, { context }) {
+    focus (value) {
       if (value) {
-        context.$nextTick(() => {
-          el.focus()
+        this.vm.$nextTick(() => {
+          this.el.focus()
         })
       }
     }
